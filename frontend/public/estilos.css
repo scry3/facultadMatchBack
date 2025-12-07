@@ -1,0 +1,202 @@
+/* ===========================================
+   VARIABLES DE COLOR
+   =========================================== */
+
+:root {
+    --color-fondo: #f5f5f5;
+    --color-primario: #4A90E2;
+    --color-secundario: #7B8D93;
+    --color-texto: #333;
+    --color-blanco: #fff;
+}
+
+/* ===========================================
+   RESETEO BÁSICO
+   =========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* Evita problemas de tamaños */
+    font-family: Arial, sans-serif;
+}
+
+/* ===========================================
+   ESTILO GENERAL
+   =========================================== */
+
+body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    display: flex;
+    justify-content: center;  /* Centra horizontal */
+    align-items: center;      /* Centra vertical */
+    height: 100vh;
+}
+
+/* ===========================================
+   CONTENEDOR PRINCIPAL
+   =========================================== */
+
+.container {
+    background: var(--color-blanco);
+    padding: 2rem;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 10px; /* Esquinas redondeadas */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Sombra leve */
+    text-align: center;
+}
+
+/* ===========================================
+   TITULOS
+   =========================================== */
+
+.titulo {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.subtitulo {
+    font-size: 1rem;
+    color: var(--color-secundario);
+    margin-bottom: 2rem;
+}
+
+/* ===========================================
+   BOTONES
+   =========================================== */
+
+.btn {
+    display: block;
+    text-decoration: none;
+    color: var(--color-blanco);
+    background-color: var(--color-primario);
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    opacity: 0.9; /* Efecto hover simple */
+}
+
+.btn-secundario {
+    background-color: var(--color-secundario);
+}
+
+
+
+
+
+
+
+/* ===========================================
+   FORMULARIOS
+   =========================================== */
+
+.label {
+    text-align: left;
+    display: block;
+    margin: 1rem 0 0.3rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.input {
+    width: 100%;
+    padding: 0.7rem;
+    border: 1px solid #ccc; /* Borde sutil */
+    border-radius: 6px;
+    font-size: 1rem;
+    outline: none;
+}
+
+.input:focus {
+    border-color: var(--color-primario); /* Marca el foco */
+}
+
+.texto-info {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.link {
+    color: var(--color-primario);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+
+
+
+
+
+/* ===========================================
+   TEXTAREA
+   =========================================== */
+
+.textarea {
+    resize: none; /* Para evitar que rompa el diseño */
+}
+
+
+
+
+
+/* ===========================================
+   TARJETAS & LAYOUT EXPLORAR / MATCHES
+   =========================================== */
+
+/* Contenedor de tarjeta */
+.card {
+  background: var(--color-blanco);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+/* Cuerpo de la tarjeta */
+.card-body {
+  padding: 1rem;
+}
+
+.perfil-card { 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 160px;
+}
+
+/* Meta (edad - carrera) más sutil */
+.muted {
+  color: var(--color-secundario);
+  font-size: 0.9rem;
+}
+
+/* Acciones (botones) dentro de la tarjeta */
+.card-actions {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.8rem;
+}
+
+/* Lista de matches */
+.matches-list {
+  list-style: none;
+  padding: 0;
+}
+
+.matches-list li {
+  padding: 0.8rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
