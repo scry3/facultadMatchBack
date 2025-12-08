@@ -59,11 +59,6 @@ function handleRegister() {
             if (isNaN(data.edad) || data.edad < 18 || data.edad > 100) return alert('Edad inválida (18-100).');
 
             try {
-                /* fetch: hace un request al backend
-                   - method: POST
-                   - credentials: include → manda cookies (para sesión)
-                   - headers: para indicar que mandamos JSON
-                   - body: convertimos el objeto JS a JSON               */
                 const res = await fetch(`${API_BASE}/api/register`, {
                     method: 'POST',
                     credentials: 'include',
@@ -71,10 +66,13 @@ function handleRegister() {
                     body: JSON.stringify(data)
                 });
 
-                await jsonResponse(res); // convierte la respuesta
+                const responseData = await jsonResponse(res); // guardamos la respuesta con info del usuario
 
-                alert('Registro exitoso. Ahora iniciá sesión.');
-                window.location.href = 'login.html';
+                // Guardamos el id del usuario en localStorage
+                localStorage.setItem('userId', responseData.data.id);
+
+                alert('Registro exitoso. ¡Ahora podés explorar!');
+                window.location.href = 'explorar.html'; // redirige directamente al explorer
 
             } catch (err) {
                 console.error(err);
@@ -83,6 +81,7 @@ function handleRegister() {
         });
     });
 }
+
 
 /* ============================================================
    2) LOGIN
@@ -109,7 +108,10 @@ function handleLogin() {
                     body: JSON.stringify(payload)
                 });
 
-                await jsonResponse(res);
+                const data = await jsonResponse(res); // guardamos la respuesta con info del usuario
+
+                // Guardamos el id del usuario logueado en localStorage
+                localStorage.setItem('userId', data.data.id);
 
                 // Login OK → pasamos a explorar
                 window.location.href = 'explorar.html';
@@ -118,9 +120,12 @@ function handleLogin() {
                 console.error(err);
                 alert('Login falló: ' + err.message);
             }
-        });
+
+        }
+        );
 
     });
+
 }
 
 /* ============================================================
@@ -133,6 +138,7 @@ function handleLogin() {
 let perfiles = [];
 let currentIndex = 0;
 
+
 /* --------------------------------------------------------------
    cargarPerfiles()
    - Hace GET /users
@@ -140,26 +146,33 @@ let currentIndex = 0;
    - Muestra el primer perfil
    -------------------------------------------------------------- */
 async function cargarPerfiles() {
+    const userId = localStorage.getItem('userId'); // id guardado en register o login
+
+    if (!userId) {
+        window.location.href = 'login.html';
+        return;
+    }
+    // Traemos el id del usuario logueado desde el localStorage.
+    // Esto se usa para que el backend sepa quién está viendo los perfiles y
+    // así no mostrarle su propio perfil en el explorer.
+    // Necesario entrar como un usuario para ir al explorer.
+
     try {
-        const res = await fetch(`${API_BASE}/users`, {
-            credentials: 'include'
+        const res = await fetch(`${API_BASE}/api/users?userId=${userId}`, {
+        credentials: 'include'
         });
 
-        perfiles = await jsonResponse(res);
-        currentIndex = 0;
-        renderPerfil(); // dibuja la tarjeta del perfil actual
-
+        perfiles = await res.json(); // array directo del backend
+        if(currentIndex==null)currentIndex = 0;
+        renderPerfil();
     } catch (err) {
         console.error(err);
-
-        // Si el backend manda 401 = no estás logueado
-        if (err.message.toLowerCase().includes('unauthorized')) {
-            window.location.href = 'login.html';
-        } else {
-            document.getElementById('perfilNombre').textContent = 'Error al cargar perfiles.';
-        }
+        document.getElementById('perfilNombre').textContent = 'Error al cargar perfiles man.';
     }
 }
+
+
+
 
 /* --------------------------------------------------------------
    renderPerfil()
@@ -211,19 +224,19 @@ function setupSkip() {
 function setupLike() {
     onDOM('#likeBtn', btn => {
         btn.addEventListener('click', async () => {
-
             const perfil = perfiles[currentIndex];
             if (!perfil) return;
 
+            const userId = localStorage.getItem('userId'); // usamos el id guardado
+
             try {
-                const res = await fetch(`${API_BASE}/like/${perfil.id}`, {
+                const res = await fetch(`${API_BASE}/api/like/${perfil.id}?userId=${userId}`, {
                     method: 'POST',
                     credentials: 'include'
                 });
 
                 const data = await jsonResponse(res);
 
-                // Si el backend nos dice "match: true"
                 if (data.match) {
                     alert(`¡Match con ${data.partner.nombre || data.partner.username}! IG: ${data.partner.instagram}`);
                 }
@@ -236,6 +249,7 @@ function setupLike() {
                 alert('Error al dar like.');
             }
         });
+
     });
 }
 
@@ -251,7 +265,7 @@ function setupLike() {
    -------------------------------------------------------------- */
 async function cargarMatches() {
     try {
-        const res = await fetch(`${API_BASE}/matches`, {
+        const res = await fetch(`${API_BASE}/api/matches`, {
             credentials: 'include'
         });
 

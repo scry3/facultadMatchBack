@@ -3,6 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./src/routes/auth.routes");
 
+const db = require('./src/db/database');
+
 
 // Crear la app de Express
 const app = express();
