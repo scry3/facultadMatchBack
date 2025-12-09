@@ -1,37 +1,73 @@
 // server.js
 const express = require("express");
 const cors = require("cors");
+const session = require("express-session");   // importa sesiones
+
 const authRoutes = require("./src/routes/auth.routes");
+const likeRoutes = require("./src/routes/likes.routes");
+const matchRoutes = require("./src/routes/matches.routes");
+
 
 const db = require('./src/db/database');
 
-
-// Crear la app de Express
 const app = express();
 
+// ============================
+// CORS
+// ============================
+app.use(cors({
+    origin: [
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+    ],
+    credentials: true   // necesario para enviar cookies
+}));
+
+// ============================
+// MIDDELWARE: SESIONES
+// ============================
+app.use(session({
+    secret: "un_dia_vi_una_vaca_sin_cola_vestida_de_uniforme",  // Cambialo por algo tuyo
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: false,   // ⚠️ en localhost SIEMPRE false
+        maxAge: 1000 * 60 * 60 * 24 // 1 día
+    }
+}));
+
+// ============================
+// TEST
+// ============================
 app.get('/api/test', (req, res) => {
     res.json({ ok: true, message: "Backend funcionando" });
 });
 
+// ============================
+// Parseo de JSON
+// ============================
+app.use(express.json());
 
-// Middlewares
-app.use(cors({
-    origin: [
-        "http://localhost:5500",
-        "http://127.0.0.1:5500"
-    ],
-    credentials: true
-}));
+// ============================
+// Rutas
+// ============================
+app.use("/api/auth", authRoutes);
+app.use("/api/like", likeRoutes);
+app.use("/api/match", matchRoutes);
 
-app.use(express.json()); // permite recibir JSON en requests
-app.use("/api", authRoutes);
 
-// Ruta simple para probar
+
+// ============================
+// Root
+// ============================
 app.get("/", (req, res) => {
   res.send("Backend funcionando 🚀");
 });
 
-// Levantar el servidor
+// ============================
+// Iniciar servidor
+// ============================
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);

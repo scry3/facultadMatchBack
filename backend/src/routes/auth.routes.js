@@ -1,23 +1,25 @@
 const express = require("express");
 const router = express.Router();
 
-const { registerUser, loginUser, getAllUsers} = require("../controllers/auth.controller");
-const { likeUser } = require("../controllers/likes.controller");
-const { getMatches } = require("../controllers/match.controller");
+const requireAuth = require('../middlewares/authMiddleware');
 
-// Endpoint POST /api/register
+const { registerUser, loginUser, getAllUsers, updateProfile, getProfile } = require("../controllers/auth.controller");
+
+// POST /api/auth/register
 router.post("/register", registerUser);
 
-// Endpoint POST /api/login
+// POST /api/auth/login
 router.post("/login", loginUser);
 
-// Endpoint GET /api/users
-router.get("/users", getAllUsers);
+// GET /api/auth/users
+router.get("/users", requireAuth, getAllUsers);
 
-// Endpoint POST /api/like/:id → dar like a otro usuario
-router.post("/like/:id", likeUser);
+// PATCH /api/auth/profile
+router.patch("/profile", requireAuth, updateProfile);
 
-// Endpoint GET /api/matches → traer los matches del usuario
-router.get("/matches", getMatches);
+// routes/auth.routes.js
+router.get("/profile", requireAuth, getProfile);
+
 
 module.exports = router;
+

@@ -1,14 +1,10 @@
-// ============================
-// Traer matches del usuario
-// ============================
-
 const db = require('../db/database');
 
 function getMatches(req, res) {
-    const userId = parseInt(req.query.userId);
+    const userId = req.session?.userId;
 
     if (!userId) {
-        return res.status(400).json({ success: false, message: 'Faltan datos.' });
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
     const query = `

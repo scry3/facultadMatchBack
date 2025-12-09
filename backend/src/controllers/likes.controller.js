@@ -5,10 +5,10 @@
 const db = require("../db/database");
 
 function likeUser(req, res) {
-const userId = parseInt(req.query.userId); // quien da el like
+const userId = req.user.id; // viene del authMiddleware
+//el middleware ya asigna req.user = { id: req.session.userId };
 const likedUserId = parseInt(req.params.id); // a quien le damos like
 
- 
 if (!userId || !likedUserId) {
     return res.status(400).json({ success: false, message: 'Faltan datos.' });
 }

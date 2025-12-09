@@ -59,7 +59,7 @@ function handleRegister() {
             if (isNaN(data.edad) || data.edad < 18 || data.edad > 100) return alert('Edad inválida (18-100).');
 
             try {
-                const res = await fetch(`${API_BASE}/api/register`, {
+                const res = await fetch(`${API_BASE}/api/auth/register`, {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
@@ -101,7 +101,7 @@ function handleLogin() {
             };
 
             try {
-                const res = await fetch(`${API_BASE}/api/login`, {
+                const res = await fetch(`${API_BASE}/api/auth/login`, {
                     method: 'POST',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
@@ -146,30 +146,28 @@ let currentIndex = 0;
    - Muestra el primer perfil
    -------------------------------------------------------------- */
 async function cargarPerfiles() {
-    const userId = localStorage.getItem('userId'); // id guardado en register o login
-
-    if (!userId) {
-        window.location.href = 'login.html';
-        return;
-    }
-    // Traemos el id del usuario logueado desde el localStorage.
-    // Esto se usa para que el backend sepa quién está viendo los perfiles y
-    // así no mostrarle su propio perfil en el explorer.
-    // Necesario entrar como un usuario para ir al explorer.
-
     try {
-        const res = await fetch(`${API_BASE}/api/users?userId=${userId}`, {
-        credentials: 'include'
+        const res = await fetch(`${API_BASE}/api/auth/users`, {
+            credentials: 'include' // necesario para que la sesión funcione
         });
 
+        if (!res.ok) { // manejo de errores HTTP
+            if (res.status === 401) {
+                window.location.href = 'login.html';
+                return;
+            }
+            throw new Error('Error al traer los perfiles');
+        }
+
         perfiles = await res.json(); // array directo del backend
-        if(currentIndex==null)currentIndex = 0;
+        if (currentIndex == null) currentIndex = 0;
         renderPerfil();
     } catch (err) {
         console.error(err);
         document.getElementById('perfilNombre').textContent = 'Error al cargar perfiles man.';
     }
 }
+
 
 
 
@@ -227,12 +225,12 @@ function setupLike() {
             const perfil = perfiles[currentIndex];
             if (!perfil) return;
 
-            const userId = localStorage.getItem('userId'); // usamos el id guardado
+            //const userId = localStorage.getItem('userId'); //// usamos el id guardado
 
             try {
-                const res = await fetch(`${API_BASE}/api/like/${perfil.id}?userId=${userId}`, {
-                    method: 'POST',
-                    credentials: 'include'
+                const res = await fetch(`${API_BASE}/api/like/${perfil.id}`, {
+                    method: "POST",
+                    credentials: "include"
                 });
 
                 const data = await jsonResponse(res);
@@ -265,7 +263,7 @@ function setupLike() {
    -------------------------------------------------------------- */
 async function cargarMatches() {
     try {
-        const res = await fetch(`${API_BASE}/api/matches`, {
+        const res = await fetch(`${API_BASE}/api/match`, {
             credentials: 'include'
         });
 
@@ -285,18 +283,24 @@ async function cargarMatches() {
         ul.innerHTML = '';
 
         // Recorremos cada match y lo agregamos al HTML
-        lista.forEach(m => {
-            const li = document.createElement('li');
+        const idsVistos = new Set();
 
-            li.innerHTML = `
-        <span>${m.nombre || m.username}
-          <small class="muted">(${m.edad} • ${m.carrera})</small>
-        </span>
-        <span><strong>${m.instagram}</strong></span>
-      `;
+lista.forEach(m => {
+    if (idsVistos.has(m.id)) return; // evita duplicados
+    idsVistos.add(m.id);
 
-            ul.appendChild(li);
-        });
+    const li = document.createElement('li');
+    li.className = 'card perfil-card'; // mismo estilo que explorar
+    li.innerHTML = `
+      <div class="card-body">
+        <h3>${m.nombre || m.username}, ${m.edad} años, ${m.carrera}</h3>
+        <p>${m.descripcion || ''}</p>
+        <p><strong>@${m.instagram}</strong></p>
+      </div>
+    `;
+    ul.appendChild(li);
+});
+
 
     } catch (err) {
         console.error(err);
@@ -322,3 +326,68 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (path === 'match.html') cargarMatches();
 });
+
+
+
+
+
+
+/* ============================================================
+   6) actualizar info de perfil
+   ============================================================ */
+async function inicializarPerfil() {
+    const inputDesc = document.getElementById('inputDescripcion');
+    const previewDesc = document.getElementById('previewDescripcion');
+    const inputIG = document.getElementById('inputInstagram');
+
+    try {
+        // Traemos los datos actuales del usuario desde su perfil
+        const res = await fetch(`${API_BASE}/api/auth/profile`, {
+            credentials: 'include'
+        });
+        if (!res.ok) throw new Error('No se pudieron cargar los datos del perfil');
+
+        const user = await res.json();
+
+        // Seteamos los valores actuales
+        inputDesc.value = user.descripcion || '';
+        previewDesc.textContent = user.descripcion || ''; // vista previa inicial
+        inputIG.value = user.instagram || '';
+
+    } catch (err) {
+        console.error(err);
+        previewDesc.textContent = 'Error al cargar tu perfil';
+    }
+
+    // Botón de actualizar perfil
+    onDOM('#btnActualizarPerfil', btn => {
+        btn.addEventListener('click', async () => {
+            const descripcion = inputDesc.value;
+            const instagram = inputIG.value;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/profile`, {
+                    method: 'PATCH',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ descripcion, instagram })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert('Perfil actualizado!');
+                    // Actualizamos la vista previa solo al actualizar
+                    previewDesc.textContent = descripcion;
+                } else {
+                    throw new Error(data.message || 'Error al actualizar perfil');
+                }
+            } catch(err) {
+                console.error(err);
+                alert('Error al actualizar perfil.');
+            }
+        });
+    });
+}
+
+// Llamar a la función al cargar la sección de edición
+inicializarPerfil();
