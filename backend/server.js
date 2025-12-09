@@ -32,7 +32,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: false,   // ⚠️ en localhost SIEMPRE false
+        secure: true,   // ⚠️ en localhost SIEMPRE false
         maxAge: 1000 * 60 * 60 * 24 // 1 día
     }
 }));
