@@ -17,11 +17,11 @@ const app = express();
 // ============================
 app.use(cors({
     origin: [
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
+        "https://choosewisely.neocities.org"
     ],
-    credentials: true   // necesario para enviar cookies
+    credentials: true
 }));
+
 
 // ============================
 // MIDDELWARE: SESIONES
