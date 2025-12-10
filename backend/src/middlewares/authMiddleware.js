@@ -1,6 +1,7 @@
 // src/middlewares/authMiddleware.js
 function authRequired(req, res, next) {
     console.log("llego al middleware");
+    console.log("Session actual:", req.session); // <--- log
     if (!req.session || !req.session.userId) {
         return res.status(401).json({
             success: false,
