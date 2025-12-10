@@ -53,6 +53,9 @@ async function registerUser(req, res) {
 // ============================
 // Login de usuario
 // ============================
+// ============================
+// Login de usuario
+// ============================
 function loginUser(req, res) {
     const { username, password } = req.body;
 
@@ -76,18 +79,26 @@ function loginUser(req, res) {
                 // Guardamos el id del usuario en la sesión
                 req.session.userId = user.id;
 
-                return res.json({
-                    success: true,
-                    message: "Login exitoso",
-                    data: {
-                        id: user.id,
-                        username: user.username,
-                        nombre: user.nombre,
-                        edad: user.edad,
-                        carrera: user.carrera,
-                        descripcion: user.descripcion,
-                        instagram: user.instagram
+                // Forzamos guardar la sesión antes de responder
+                req.session.save(err => {
+                    if (err) {
+                        console.error("Error guardando sesión:", err);
+                        return res.status(500).json({ success: false, message: "Error al guardar la sesión." });
                     }
+
+                    return res.json({
+                        success: true,
+                        message: "Login exitoso",
+                        data: {
+                            id: user.id,
+                            username: user.username,
+                            nombre: user.nombre,
+                            edad: user.edad,
+                            carrera: user.carrera,
+                            descripcion: user.descripcion,
+                            instagram: user.instagram
+                        }
+                    });
                 });
             })
             .catch(err => {
@@ -96,6 +107,7 @@ function loginUser(req, res) {
             });
     });
 }
+
 
 // ============================
 // Traer usuarios al explorer
