@@ -32,8 +32,8 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: true,   // ⚠️ en localhost SIEMPRE false
-        sameSite:"none",
+        secure: false,
+        sameSite:"lax",
         maxAge: 1000 * 60 * 60 * 24 // 1 día
     }
 }));
