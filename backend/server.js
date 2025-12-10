@@ -6,23 +6,40 @@ const session = require("express-session");   // importa sesiones
 const authRoutes = require("./src/routes/auth.routes");
 const likeRoutes = require("./src/routes/likes.routes");
 const matchRoutes = require("./src/routes/matches.routes");
-const IN_PROD = process.env.NODE_ENV === 'production';
-
 
 const db = require('./src/db/database');
 
 const app = express();
 
+// Entorno
+const IN_PROD = process.env.NODE_ENV === 'production';
+
+// Trust proxy (IMPORTANTE en Render / Heroku / Netlify Functions detrás de proxy)
+app.set('trust proxy', 1);
+
 // ============================
 // CORS
 // ============================
+// Reemplazá exactamente con tu dominio frontend
+const FRONTEND_ORIGIN = "https://choosewisely.neocities.org";
+
 app.use(cors({
-    origin: [
-        "https://choosewisely.neocities.org"
-    ],
+    origin: FRONTEND_ORIGIN,
+    credentials: true,
+    methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+    allowedHeaders: ['Content-Type','Authorization','X-Requested-With','Accept']
+}));
+
+// Asegura que las opciones preflight también respondan con credenciales
+app.options('*', cors({
+    origin: FRONTEND_ORIGIN,
     credentials: true
 }));
 
+// ============================
+// Parseo de JSON (antes de las rutas)
+// ============================
+app.use(express.json());
 
 // ============================
 // MIDDELWARE: SESIONES
@@ -33,12 +50,11 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: IN_PROD,          // solo true en prod (HTTPS)
-        sameSite: IN_PROD ? "none" : "lax", // cross-site en prod, lax en dev
+        secure: IN_PROD,                      // true sólo en prod (HTTPS)
+        sameSite: IN_PROD ? "none" : "lax",   // none en prod para cross-site
         maxAge: 1000 * 60 * 60 * 24 // 1 día
     }
 }));
-
 
 // ============================
 // TEST
@@ -48,18 +64,11 @@ app.get('/api/test', (req, res) => {
 });
 
 // ============================
-// Parseo de JSON
-// ============================
-app.use(express.json());
-
-// ============================
 // Rutas
 // ============================
 app.use("/api/auth", authRoutes);
 app.use("/api/like", likeRoutes);
 app.use("/api/match", matchRoutes);
-
-
 
 // ============================
 // Root
@@ -69,9 +78,9 @@ app.get("/", (req, res) => {
 });
 
 // ============================
-// Iniciar servidor
-// ============================
-const PORT = 3000;
+// Iniciar servidor (usar PORT de Render)
+ // ============================
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+  console.log(`Servidor escuchando en http://localhost:${PORT} (port ${PORT})`);
 });
