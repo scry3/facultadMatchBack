@@ -38,9 +38,9 @@ CREATE TABLE IF NOT EXISTS likes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     liked_user_id INTEGER,
-    FOREIGN KEY(user_id) REFERENCES users(id),
-    FOREIGN KEY(liked_user_id) REFERENCES users(id)
-)
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(liked_user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 `);
 
 // Matches
@@ -50,9 +50,10 @@ CREATE TABLE IF NOT EXISTS matches (
     user1_id INTEGER,
     user2_id INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user1_id) REFERENCES users(id),
-    FOREIGN KEY(user2_id) REFERENCES users(id)
-)
+    FOREIGN KEY(user1_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(user2_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 `);
 
 module.exports = db;
