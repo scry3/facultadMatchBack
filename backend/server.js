@@ -27,12 +27,13 @@ app.use(cors({
 // MIDDELWARE: SESIONES
 // ============================
 app.use(session({
-    secret: "un_dia_vi_una_vaca_sin_cola_vestida_de_uniforme",  // Cambialo por algo tuyo
+    secret: "un_dia_vi_una_vaca_sin_cola_vestida_de_uniforme",
     resave: false,
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
         secure: true,   // ⚠️ en localhost SIEMPRE false
+        sameSite:"none",
         maxAge: 1000 * 60 * 60 * 24 // 1 día
     }
 }));
