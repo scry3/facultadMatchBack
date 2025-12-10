@@ -30,11 +30,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type','Authorization','X-Requested-With','Accept']
 }));
 
-// Asegura que las opciones preflight también respondan con credenciales
-app.options('*', cors({
-    origin: FRONTEND_ORIGIN,
-    credentials: true
-}));
 
 // ============================
 // Parseo de JSON (antes de las rutas)
