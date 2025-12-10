@@ -6,6 +6,7 @@ const session = require("express-session");   // importa sesiones
 const authRoutes = require("./src/routes/auth.routes");
 const likeRoutes = require("./src/routes/likes.routes");
 const matchRoutes = require("./src/routes/matches.routes");
+const IN_PROD = process.env.NODE_ENV === 'production';
 
 
 const db = require('./src/db/database');
@@ -32,11 +33,12 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: true,
-        sameSite:"none",
+        secure: IN_PROD,          // solo true en prod (HTTPS)
+        sameSite: IN_PROD ? "none" : "lax", // cross-site en prod, lax en dev
         maxAge: 1000 * 60 * 60 * 24 // 1 día
     }
 }));
+
 
 // ============================
 // TEST
