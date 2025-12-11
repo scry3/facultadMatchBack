@@ -1,10 +1,13 @@
-const db = require('./src/db/database');
+const pool = require('./src/db/database');
 
-db.all("SELECT * FROM users", [], (err, rows) => {
-    if (err) {
-        return console.error(err.message);
-    }
+(async () => {
+  try {
+    const res = await pool.query("SELECT * FROM users");
     console.log("Usuarios en la DB:");
-    console.table(rows); // muestra en tabla en la terminal
-    process.exit(); // cierra la conexión
-});
+    console.table(res.rows); // muestra en tabla en la terminal
+  } catch (err) {
+    console.error(err);
+  } finally {
+    await pool.end(); // cierra la conexión
+  }
+})();
