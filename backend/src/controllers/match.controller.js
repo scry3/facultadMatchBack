@@ -2,7 +2,7 @@
 const pool = require("../db/database");
 
 async function getMatches(req, res) {
-    const userId = req.session?.userId;
+    const userId = req.user.id; // viene del authJwt
 
     if (!userId) {
         return res.status(401).json({ success: false, message: "Unauthorized" });

@@ -1,6 +1,6 @@
-// controllers/auth.controller.js
-const pool = require('../db/database'); // ahora importa el pool de PostgreSQL
+const pool = require('../db/database');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const SALT_ROUNDS = 10;
 
@@ -70,27 +70,26 @@ async function loginUser(req, res) {
         const match = await bcrypt.compare(password, user.password);
         if (!match) return res.status(400).json({ success: false, message: "Contraseña incorrecta." });
 
-        req.session.userId = user.id;
+        // === Generar JWT ===
+        const token = jwt.sign(
+            { id: user.id, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
+        );
 
-        req.session.save(err => {
-            if (err) {
-                console.error("Error guardando sesión:", err);
-                return res.status(500).json({ success: false, message: "Error al guardar la sesión." });
+        return res.json({
+            success: true,
+            message: "Login exitoso",
+            token,
+            data: {
+                id: user.id,
+                username: user.username,
+                nombre: user.nombre,
+                edad: user.edad,
+                carrera: user.carrera,
+                descripcion: user.descripcion,
+                instagram: user.instagram
             }
-
-            return res.json({
-                success: true,
-                message: "Login exitoso",
-                data: {
-                    id: user.id,
-                    username: user.username,
-                    nombre: user.nombre,
-                    edad: user.edad,
-                    carrera: user.carrera,
-                    descripcion: user.descripcion,
-                    instagram: user.instagram
-                }
-            });
         });
 
     } catch (err) {

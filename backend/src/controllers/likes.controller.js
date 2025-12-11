@@ -5,7 +5,7 @@ const pool = require("../db/database");
 // Dar Like a otro usuario
 // ==========================================
 async function likeUser(req, res) {
-    const userId = req.user.id;          // viene del authMiddleware
+    const userId = req.user.id;          // viene del authJwt
     const likedUserId = parseInt(req.params.id); // usuario que recibirá el like
 
     if (!userId || !likedUserId) {

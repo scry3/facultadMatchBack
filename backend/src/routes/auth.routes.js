@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const requireAuth = require('../middlewares/authMiddleware');
-
+const authJwt = require('../middlewares/authJwt');
 const { registerUser, loginUser, getAllUsers, updateProfile, getProfile } = require("../controllers/auth.controller");
 
 // POST /api/auth/register
@@ -12,14 +11,12 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 
 // GET /api/auth/users
-router.get("/users", requireAuth, getAllUsers);
+router.get("/users", authJwt, getAllUsers);
 
 // PATCH /api/auth/profile
-router.patch("/profile", requireAuth, updateProfile);
+router.patch("/profile", authJwt, updateProfile);
 
-// routes/auth.routes.js
-router.get("/profile", requireAuth, getProfile);
-
+// GET /api/auth/profile
+router.get("/profile", authJwt, getProfile);
 
 module.exports = router;
-

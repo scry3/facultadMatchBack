@@ -3,9 +3,9 @@ const express = require("express");
 const router = express.Router();
 
 const { likeUser } = require("../controllers/likes.controller");
-const requireAuth = require("../middlewares/authMiddleware");
+const authJwt = require("../middlewares/authJwt");
 
 // LIKE A UN USUARIO
-router.post("/:id", requireAuth, likeUser);
+router.post("/:id", authJwt, likeUser);
 
 module.exports = router;
