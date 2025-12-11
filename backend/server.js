@@ -79,3 +79,14 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT} (port ${PORT})`);
 });
+
+
+
+const db = require("./ruta/a/tu/db.js");
+
+app.get("/debug/users", (req, res) => {
+  db.all("SELECT * FROM users", (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
