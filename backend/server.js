@@ -5,19 +5,22 @@ const cors = require("cors");
 const session = require("express-session");
 const PgSession = require("connect-pg-simple")(session);
 
-
 const authRoutes = require("./src/routes/auth.routes");
 const likeRoutes = require("./src/routes/likes.routes");
 const matchRoutes = require("./src/routes/matches.routes");
 
-const pool = require("./src/db/database"); // ahora es PG, no SQLite
+const pool = require("./src/db/database"); // tu pool de PostgreSQL
 
 const app = express();
 
+// ============================
 // Entorno
+// ============================
 const IN_PROD = process.env.NODE_ENV === "production";
 
-// Necesario para Render (proxy)
+// ============================
+// Trust proxy (Render)
+// ============================
 app.set("trust proxy", 1);
 
 // ============================
@@ -28,14 +31,9 @@ const FRONTEND_ORIGIN = "https://choosewisely.neocities.org";
 app.use(
     cors({
         origin: FRONTEND_ORIGIN,
-        credentials: true,
+        credentials: true, // necesario para cookies cross-site
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allowedHeaders: [
-            "Content-Type",
-            "Authorization",
-            "X-Requested-With",
-            "Accept",
-        ],
+        allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
     })
 );
 
@@ -45,36 +43,35 @@ app.use(
 app.use(express.json());
 
 // ============================
-// Sesiones
+// Sesiones con PostgreSQL
 // ============================
 app.use(
     session({
         store: new PgSession({
-            pool: pool, // le pasamos el pool de PostgreSQL
-            tableName: "user_sessions", // tabla donde se guardan las sesiones
+            pool: pool,            // tu pool de PostgreSQL
+            tableName: "user_sessions",
         }),
-        secret: process.env.SESSION_SECRET || "secreto_generico",
+        secret: process.env.SESSION_SECRET, // obligatorio: tu secreto en Render
         resave: false,
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
-            secure: IN_PROD,            // true solo en producción
-            sameSite: IN_PROD ? "none" : "lax",
+            secure: IN_PROD,           // HTTPS obligatorio en prod
+            sameSite: IN_PROD ? "none" : "lax", // cross-site
             maxAge: 1000 * 60 * 60 * 24, // 1 día
         },
     })
 );
 
-
 // ============================
 // Test
 // ============================
 app.get("/api/test", (req, res) => {
-    res.json({ ok: true, message: "Backend funcionando" });
+    res.json({ ok: true, message: "Backend funcionando 🚀" });
 });
 
 // ============================
-// Debug users (ahora con PostgreSQL)
+// Debug users
 // ============================
 app.get("/debug/users", async (req, res) => {
     try {
@@ -101,7 +98,7 @@ app.get("/", (req, res) => {
 });
 
 // ============================
-// Inicio
+// Inicio servidor
 // ============================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
