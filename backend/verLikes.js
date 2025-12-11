@@ -1,10 +1,13 @@
-const db = require('./src/db/database');
+const pool = require("./src/db/database");
 
-db.all("SELECT * FROM likes", [], (err, rows) => {
-    if (err) return console.error(err.message);
-
+(async () => {
+  try {
+    const res = await pool.query("SELECT * FROM likes");
     console.log("Likes en la DB:");
-    console.table(rows);
-
-    process.exit();
-});
+    console.table(res.rows);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    pool.end(); // cierra la conexión
+  }
+})();
