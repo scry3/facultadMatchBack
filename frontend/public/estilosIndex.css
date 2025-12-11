@@ -1,0 +1,100 @@
+/* ===========================================
+   VARIABLES DE COLOR
+   =========================================== */
+:root {
+    --color-fondo: #F9F8F6;
+    --color-primario: #FF6B6B;
+    --color-secundario: #FFA07A;
+    --color-texto: #333333;
+    --color-blanco: #ffffff;
+}
+
+/* ===========================================
+   RESETEO BÁSICO
+   =========================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* ===========================================
+   ESTILO GENERAL INDEX
+   =========================================== */
+body.index-page {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    position: relative; /* necesario para posicionar el logo */
+}
+
+/* ===========================================
+   LOGO DEL INDEX
+   =========================================== */
+.index-page .logo-container {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.index-page .logo-container img,
+.index-page .logo-container svg {
+    width: 120px;
+    height: auto;
+    color: var(--color-primario);
+}
+
+/* ===========================================
+   CONTENEDOR PRINCIPAL DEL INDEX
+   =========================================== */
+.container {
+    background: var(--color-blanco);
+    padding: 2rem;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+/* ===========================================
+   TÍTULOS
+   =========================================== */
+.titulo {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.subtitulo {
+    font-size: 1rem;
+    color: var(--color-secundario);
+    margin-bottom: 2rem;
+}
+
+/* ===========================================
+   BOTONES
+   =========================================== */
+.btn {
+    display: block;
+    text-decoration: none;
+    color: var(--color-blanco);
+    background-color: var(--color-primario);
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+.btn-secundario {
+    background-color: var(--color-secundario);
+}
