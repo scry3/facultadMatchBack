@@ -236,12 +236,15 @@ async function cargarMatches() {
 // Inicialización por página
 // ============================
 document.addEventListener('DOMContentLoaded', () => {
-    if (path === 'register.html') handleRegister();
-    if (path === 'login.html') handleLogin();
-    if (path === 'explorar.html') {
+    if (path === 'register.html' || path === 'register') handleRegister();
+    if (path.endsWith('login.html') || path === 'login') handleLogin();
+    if (path.endsWith('explorar.html') || path === 'explorar') {
         cargarPerfiles();
         setupSkip();
         setupLike();
     }
-    if (path === 'match.html') cargarMatches();
+    if (path === 'match.html' || path === 'match') cargarMatches();
+    if (document.querySelector('#inputDescripcion')) inicializarPerfil();
 });
+
+
