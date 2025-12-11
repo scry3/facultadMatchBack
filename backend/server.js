@@ -20,7 +20,7 @@ const FRONTEND_ORIGIN = "https://choosewisely.neocities.org";
 
 app.use(cors({
     origin: FRONTEND_ORIGIN,
-    credentials: true, // útil si alguna ruta futura usa cookies
+    //credentials: true, // útil si alguna ruta futura usa cookies
     methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
     allowedHeaders: ["Content-Type","Authorization","X-Requested-With","Accept"]
 }));
