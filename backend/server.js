@@ -17,11 +17,11 @@ app.use(express.json());
 // ============================
 // Servir frontend
 // ============================
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "../frontend/public")));
 
 // Redirigir cualquier ruta no API al index.html (para SPA)
 app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "../frontend/public", "index.html"));
 });
 
 // ============================
