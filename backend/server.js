@@ -58,6 +58,17 @@ app.get('/api/test', (req, res) => {
     res.json({ ok: true, message: "Backend funcionando" });
 });
 
+
+
+// RUTA DEBUG (ver usuarios SQLite)
+app.get("/debug/users", (req, res) => {
+  db.all("SELECT * FROM users", (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+
 // ============================
 // Rutas
 // ============================
@@ -82,11 +93,3 @@ app.listen(PORT, () => {
 
 
 
-const db = require("./ruta/a/tu/db.js");
-
-app.get("/debug/users", (req, res) => {
-  db.all("SELECT * FROM users", (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
-});
