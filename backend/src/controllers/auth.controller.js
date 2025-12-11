@@ -1,11 +1,12 @@
-const db = require('../db/database');
+// controllers/auth.controller.js
+const pool = require('../db/database'); // ahora importa el pool de PostgreSQL
 const bcrypt = require('bcrypt');
 
 const SALT_ROUNDS = 10;
 
-// ============================
-// Registro de usuario
-// ============================
+// =====================================
+// REGISTRO DE USUARIO
+// =====================================
 async function registerUser(req, res) {
     const { username, password, nombre, edad, carrera, descripcion, instagram } = req.body;
 
@@ -15,130 +16,119 @@ async function registerUser(req, res) {
 
     try {
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
         const query = `
             INSERT INTO users (username, password, nombre, edad, carrera, descripcion, instagram)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING id, username, nombre, edad, carrera, descripcion, instagram
         `;
 
-        db.run(query, [username, hashedPassword, nombre, edad, carrera, descripcion, instagram], function (err) {
-            if (err) {
-                if (err.message.includes('UNIQUE')) {
-                    return res.status(400).json({ success: false, message: 'El nombre de usuario ya existe.' });
-                }
-                console.error(err);
-                return res.status(500).json({ success: false, message: 'Error al registrar el usuario.' });
-            }
+        const result = await pool.query(query, [
+            username,
+            hashedPassword,
+            nombre,
+            edad,
+            carrera,
+            descripcion,
+            instagram
+        ]);
 
-            return res.json({
-                success: true,
-                message: 'Usuario registrado correctamente.',
-                data: {
-                    id: this.lastID,
-                    username,
-                    nombre,
-                    edad,
-                    carrera,
-                    descripcion,
-                    instagram
-                }
-            });
+        return res.json({
+            success: true,
+            message: 'Usuario registrado correctamente.',
+            data: result.rows[0]
         });
 
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ success: false, message: 'Error interno al procesar la contraseña.' });
+
+        if (err.code === "23505") { // Unique violation
+            return res.status(400).json({ success: false, message: "El nombre de usuario ya existe." });
+        }
+
+        return res.status(500).json({ success: false, message: "Error al registrar el usuario." });
     }
 }
 
-// ============================
-// Login de usuario
-// ============================
-function loginUser(req, res) {
+// =====================================
+// LOGIN
+// =====================================
+async function loginUser(req, res) {
     const { username, password } = req.body;
 
     if (!username || !password) {
         return res.status(400).json({ success: false, message: "Usuario o contraseña faltantes." });
     }
 
-    const query = `SELECT * FROM users WHERE username = ?`;
-    db.get(query, [username], (err, user) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ success: false, message: "Error al buscar usuario." });
-        }
+    try {
+        const query = `SELECT * FROM users WHERE username = $1`;
+        const result = await pool.query(query, [username]);
 
+        const user = result.rows[0];
         if (!user) return res.status(400).json({ success: false, message: "Usuario no encontrado." });
 
-        bcrypt.compare(password, user.password)
-            .then(match => {
-                if (!match) return res.status(400).json({ success: false, message: "Contraseña incorrecta." });
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) return res.status(400).json({ success: false, message: "Contraseña incorrecta." });
 
-                // Guardamos el id del usuario en la sesión
-                req.session.userId = user.id;
+        req.session.userId = user.id;
 
-                // Forzamos guardar la sesión antes de responder
-                req.session.save(err => {
-                    if (err) {
-                        console.error("Error guardando sesión:", err);
-                        return res.status(500).json({ success: false, message: "Error al guardar la sesión." });
-                    }
+        req.session.save(err => {
+            if (err) {
+                console.error("Error guardando sesión:", err);
+                return res.status(500).json({ success: false, message: "Error al guardar la sesión." });
+            }
 
-                    return res.json({
-                        success: true,
-                        message: "Login exitoso",
-                        data: {
-                            id: user.id,
-                            username: user.username,
-                            nombre: user.nombre,
-                            edad: user.edad,
-                            carrera: user.carrera,
-                            descripcion: user.descripcion,
-                            instagram: user.instagram
-                        }
-                    });
-                });
-            })
-            .catch(err => {
-                console.error(err);
-                return res.status(500).json({ success: false, message: "Error interno al verificar contraseña." });
+            return res.json({
+                success: true,
+                message: "Login exitoso",
+                data: {
+                    id: user.id,
+                    username: user.username,
+                    nombre: user.nombre,
+                    edad: user.edad,
+                    carrera: user.carrera,
+                    descripcion: user.descripcion,
+                    instagram: user.instagram
+                }
             });
-    });
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Error interno al verificar el usuario." });
+    }
 }
 
-
-// ============================
-// Traer usuarios al explorer
-// ============================
-function getAllUsers(req, res) {
-    const userId = req.user.id; // viene del authMiddleware
+// =====================================
+// LISTAR USUARIOS PARA EL EXPLORER
+// =====================================
+async function getAllUsers(req, res) {
+    const userId = req.user.id;
 
     const query = `
         SELECT id, username, nombre, edad, carrera, descripcion, instagram
         FROM users
-        WHERE id != ?
+        WHERE id != $1
         AND id NOT IN (
-            SELECT liked_user_id
-            FROM likes
-            WHERE user_id = ?
+            SELECT liked_user_id FROM likes WHERE user_id = $1
         )
     `;
 
-    db.all(query, [userId, userId], (err, users) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ success: false, message: 'Error al obtener usuarios.' });
-        }
-        return res.json(users);
-    });
+    try {
+        const result = await pool.query(query, [userId]);
+        return res.json(result.rows);
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: 'Error al obtener usuarios.' });
+    }
 }
 
-
-// ============================
-// Actualizar perfil (desc e ig)
-// ============================
-
-function updateProfile(req, res) {
-    const userId = req.user.id; // viene del authMiddleware
+// =====================================
+// EDITAR PERFIL (descripcion + IG)
+// =====================================
+async function updateProfile(req, res) {
+    const userId = req.user.id;
     const { descripcion, instagram } = req.body;
 
     if (!descripcion && !instagram) {
@@ -147,47 +137,57 @@ function updateProfile(req, res) {
 
     const query = `
         UPDATE users
-        SET descripcion = COALESCE(?, descripcion),
-            instagram = COALESCE(?, instagram)
-        WHERE id = ?
+        SET descripcion = COALESCE($1, descripcion),
+            instagram = COALESCE($2, instagram)
+        WHERE id = $3
     `;
 
-    db.run(query, [descripcion, instagram, userId], function(err) {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ success: false, message: "Error al actualizar el perfil." });
-        }
+    try {
+        await pool.query(query, [descripcion, instagram, userId]);
 
-        // Después de actualizar, devolvemos el usuario actualizado
-        db.get(`SELECT id, username, nombre, edad, carrera, descripcion, instagram 
-                FROM users WHERE id = ?`, [userId], (err, user) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ success: false, message: "Error al traer el usuario." });
-            }
+        const updatedUser = await pool.query(
+            `SELECT id, username, nombre, edad, carrera, descripcion, instagram
+             FROM users WHERE id = $1`,
+            [userId]
+        );
 
-            return res.json({ success: true, message: "Perfil actualizado correctamente.", user });
+        return res.json({
+            success: true,
+            message: "Perfil actualizado correctamente.",
+            user: updatedUser.rows[0]
         });
-    });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Error al actualizar el perfil." });
+    }
 }
 
+// =====================================
+// OBTENER PERFIL LOGEADO
+// =====================================
+async function getProfile(req, res) {
+    const userId = req.user.id;
 
-// controllers/auth.controller.js
-function getProfile(req, res) {
-    const userId = req.user.id; // del authMiddleware
-    const query = `
-        SELECT id, username, nombre, edad, carrera, descripcion, instagram
-        FROM users
-        WHERE id = ?
-    `;
-    db.get(query, [userId], (err, user) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ success: false, message: 'Error al obtener perfil.' });
-        }
-        return res.json(user);
-    });
+    try {
+        const result = await pool.query(`
+            SELECT id, username, nombre, edad, carrera, descripcion, instagram
+            FROM users
+            WHERE id = $1
+        `, [userId]);
+
+        return res.json(result.rows[0]);
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: 'Error al obtener perfil.' });
+    }
 }
 
-
-module.exports = { registerUser, loginUser, getAllUsers, updateProfile, getProfile };
+module.exports = {
+    registerUser,
+    loginUser,
+    getAllUsers,
+    updateProfile,
+    getProfile
+};

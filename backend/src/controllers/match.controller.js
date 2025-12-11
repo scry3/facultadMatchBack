@@ -1,31 +1,37 @@
-const db = require('../db/database');
+// controllers/match.controller.js
+const pool = require("../db/database");
 
-function getMatches(req, res) {
+async function getMatches(req, res) {
     const userId = req.session?.userId;
 
     if (!userId) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
+        return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const query = `
-        SELECT 
-            u.id, u.username, u.nombre, u.edad, u.carrera, u.descripcion, u.instagram
-        FROM matches m
-        JOIN users u 
-            ON u.id = CASE 
-                WHEN m.user1_id = ? THEN m.user2_id
-                ELSE m.user1_id
-            END
-        WHERE m.user1_id = ? OR m.user2_id = ?
-    `;
+    try {
+        const query = `
+            SELECT 
+                u.id, u.username, u.nombre, u.edad, u.carrera, u.descripcion, u.instagram
+            FROM matches m
+            JOIN users u 
+                ON u.id = CASE 
+                    WHEN m.user1_id = $1 THEN m.user2_id
+                    ELSE m.user1_id
+                END
+            WHERE m.user1_id = $1 OR m.user2_id = $1
+        `;
 
-    db.all(query, [userId, userId, userId], (err, rows) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ success: false, message: 'Error al obtener matches.' });
-        }
-        return res.json(rows);
-    });
+        const result = await pool.query(query, [userId]);
+
+        return res.json(result.rows);
+
+    } catch (err) {
+        console.error("Error obteniendo matches:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error al obtener matches."
+        });
+    }
 }
 
 module.exports = { getMatches };

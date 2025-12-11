@@ -1,60 +1,76 @@
-// ============================
+// controllers/likes.controller.js
+const pool = require("../db/database");
+
+// ==========================================
 // Dar Like a otro usuario
-// ============================
+// ==========================================
+async function likeUser(req, res) {
+    const userId = req.user.id;          // viene del authMiddleware
+    const likedUserId = parseInt(req.params.id); // usuario que recibirá el like
 
-const db = require("../db/database");
-
-function likeUser(req, res) {
-const userId = req.user.id; // viene del authMiddleware
-//el middleware ya asigna req.user = { id: req.session.userId };
-const likedUserId = parseInt(req.params.id); // a quien le damos like
-
-if (!userId || !likedUserId) {
-    return res.status(400).json({ success: false, message: 'Faltan datos.' });
-}
-
-// Guardamos el like
-const insertLike = `INSERT INTO likes (user_id, liked_user_id) VALUES (?, ?)`;
-db.run(insertLike, [userId, likedUserId], function(err) {
-    if (err) {
-        console.error(err);
-        return res.status(500).json({ success: false, message: 'Error al guardar like.' });
+    if (!userId || !likedUserId) {
+        return res.status(400).json({ success: false, message: "Faltan datos." });
     }
 
-    // Revisamos si el otro usuario también nos dio like
-    const checkMatch = `SELECT * FROM likes WHERE user_id = ? AND liked_user_id = ?`;
-    db.get(checkMatch, [likedUserId, userId], (err, match) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ success: false, message: 'Error al comprobar match.' });
-        }
+    try {
+        // 1) Guardamos el like
+        const insertLikeQuery = `
+            INSERT INTO likes (user_id, liked_user_id)
+            VALUES ($1, $2)
+        `;
+        await pool.query(insertLikeQuery, [userId, likedUserId]);
 
-        if (match) {
-            // Si hay match, guardamos en matches
-            const insertMatch = `INSERT INTO matches (user1_id, user2_id) VALUES (?, ?)`;
-            db.run(insertMatch, [userId, likedUserId], function(err2) {
-                if (err2) {
-                    console.error(err2);
-                    return res.status(500).json({ success: false, message: 'Error al guardar match.' });
-                }
+        // 2) Verificamos si el otro usuario también nos dio like → MATCH
+        const checkMatchQuery = `
+            SELECT * FROM likes
+            WHERE user_id = $1 AND liked_user_id = $2
+        `;
+        const matchResult = await pool.query(checkMatchQuery, [likedUserId, userId]);
 
-                // Devolvemos match verdadero con info del partner
-                const getPartner = `SELECT id, username, nombre, edad, carrera, descripcion, instagram FROM users WHERE id = ?`;
-                db.get(getPartner, [likedUserId], (err3, partner) => {
-                    if (err3) {
-                        console.error(err3);
-                        return res.status(500).json({ success: false, message: 'Error al traer datos del partner.' });
-                    }
-                    return res.json({ match: true, partner });
-                });
+        const isMatch = matchResult.rows.length > 0;
+
+        // 3) Si hay match, guardamos en matches
+        if (isMatch) {
+            const insertMatchQuery = `
+                INSERT INTO matches (user1_id, user2_id)
+                VALUES ($1, $2)
+                RETURNING id
+            `;
+            await pool.query(insertMatchQuery, [userId, likedUserId]);
+
+            // 4) Traemos el partner
+            const partnerQuery = `
+                SELECT id, username, nombre, edad, carrera, descripcion, instagram
+                FROM users
+                WHERE id = $1
+            `;
+            const partnerResult = await pool.query(partnerQuery, [likedUserId]);
+
+            return res.json({
+                match: true,
+                partner: partnerResult.rows[0]
             });
-        } else {
-            // No hay match
-            return res.json({ match: false });
         }
-    });
-});
 
+        // 4) Si NO hay match
+        return res.json({ match: false });
+
+    } catch (err) {
+        console.error(err);
+
+        // Evitar error feo si se intenta dar like 2 veces
+        if (err.code === "23505") {
+            return res.status(400).json({
+                success: false,
+                message: "Ya le diste like a este usuario."
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Error al procesar el like."
+        });
+    }
 }
 
-module.exports = {likeUser};
+module.exports = { likeUser };
