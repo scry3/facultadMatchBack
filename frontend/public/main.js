@@ -248,3 +248,58 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+// ============================
+// 6) Actualizar info de perfil
+// ============================
+async function inicializarPerfil() {
+    const inputDesc = document.getElementById('inputDescripcion');
+    const previewDesc = document.getElementById('previewDescripcion');
+    const inputIG = document.getElementById('inputInstagram');
+
+    try {
+        const res = await fetch(`${API_BASE}/api/auth/profile`, {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+
+        if (!res.ok) throw new Error('No se pudieron cargar los datos del perfil');
+
+        const user = await res.json();
+
+        inputDesc.value = user.descripcion || '';
+        previewDesc.textContent = user.descripcion || '';
+        inputIG.value = user.instagram || '';
+
+    } catch (err) {
+        console.error(err);
+        previewDesc.textContent = 'Error al cargar tu perfil';
+    }
+
+    onDOM('#btnActualizarPerfil', btn => {
+        btn.addEventListener('click', async () => {
+            const descripcion = inputDesc.value;
+            const instagram = inputIG.value;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/profile`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + getToken()
+                    },
+                    body: JSON.stringify({ descripcion, instagram })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert('Perfil actualizado!');
+                    previewDesc.textContent = descripcion;
+                } else {
+                    throw new Error(data.message || 'Error al actualizar perfil');
+                }
+            } catch(err) {
+                console.error(err);
+                alert('Error al actualizar perfil.');
+            }
+        });
+    });
+}
