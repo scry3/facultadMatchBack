@@ -14,6 +14,36 @@ async function registerUser(req, res) {
         return res.status(400).json({ success: false, message: "Faltan datos obligatorios." });
     }
 
+    // ==========================================
+    // 1) LIMITAR CANTIDAD DE CUENTAS POR IP
+    // ==========================================
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+
+    try {
+        const check = await pool.query(
+            "SELECT COUNT(*)::int AS total FROM ip_registros WHERE ip = $1",
+            [ip]
+        );
+
+        const limite = 2; // cantidad máxima permitida por IP
+
+        if (check.rows[0].total >= limite) {
+            return res.status(429).json({
+                success: false,
+                message: "Se alcanzó el límite de cuentas creadas desde esta IP."
+            });
+        }
+    } catch (err) {
+        console.error("Error verificando IP:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error interno verificando IP."
+        });
+    }
+
+    // ==========================================
+    // 2) REGISTRO NORMAL
+    // ==========================================
     try {
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
@@ -33,6 +63,18 @@ async function registerUser(req, res) {
             instagram
         ]);
 
+        // ==========================================
+        // 3) GUARDAR LA IP DESPUÉS DEL REGISTRO
+        // ==========================================
+        try {
+            await pool.query(
+                "INSERT INTO ip_registros (ip) VALUES ($1)",
+                [ip]
+            );
+        } catch (err) {
+            console.error("Error guardando IP:", err);
+        }
+
         return res.json({
             success: true,
             message: 'Usuario registrado correctamente.',
@@ -49,6 +91,7 @@ async function registerUser(req, res) {
         return res.status(500).json({ success: false, message: "Error al registrar el usuario." });
     }
 }
+
 
 // =====================================
 // LOGIN
