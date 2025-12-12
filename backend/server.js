@@ -38,6 +38,29 @@ app.get("/api/test", (req, res) => {
   res.json({ ok: true, message: "Backend funcionando 🚀" });
 });
 
+
+const pool = require("./src/db/database");
+
+app.get("/debug/usuarios", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, username, nombre, edad, carrera, descripcion, instagram
+      FROM users
+      ORDER BY id ASC
+    `);
+
+    res.json({
+      total: result.rows.length,
+      usuarios: result.rows
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al obtener usuarios" });
+  }
+});
+
+
+
 // ============================
 // Middleware 404
 // ============================
