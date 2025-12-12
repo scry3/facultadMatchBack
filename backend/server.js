@@ -52,3 +52,20 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
+
+
+//Crer tabla para ip(temporal)
+app.get("/crear-tabla-ip", async (req, res) => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ip_registros (
+        id SERIAL PRIMARY KEY,
+        ip TEXT NOT NULL,
+        fecha TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    res.send("Tabla creada OK");
+  } catch (e) {
+    res.send("Error: " + e);
+  }
+});
