@@ -17,7 +17,8 @@ async function registerUser(req, res) {
     // ==========================================
     // 1) LIMITAR CANTIDAD DE CUENTAS POR IP
     // ==========================================
-    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    const ip = req.ip;
+
 
     try {
         const check = await pool.query(
