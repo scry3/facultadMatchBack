@@ -11,8 +11,21 @@ async function registerUser(req, res) {
     const { username, password, nombre, edad, carrera, descripcion, instagram } = req.body;
 
     if (!username || !password || !nombre || !edad || !carrera) {
-        return res.status(400).json({ success: false, message: "Faltan datos obligatorios." });
-    }
+    return res.status(400).json({
+        success: false,
+        message: "Faltan datos obligatorios."
+    });
+}
+
+const MIN_DESC_LENGTH = 40;
+
+if (descripcion && descripcion.trim().length < MIN_DESC_LENGTH) {
+    return res.status(400).json({
+        success: false,
+        message: `La descripción debe tener al menos ${MIN_DESC_LENGTH} caracteres.`
+    });
+}
+
 
     // ==========================================
     // 1) LIMITAR CANTIDAD DE CUENTAS POR IP
@@ -174,9 +187,22 @@ async function updateProfile(req, res) {
     const userId = req.user.id;
     const { descripcion, instagram } = req.body;
 
-    if (!descripcion && !instagram) {
-        return res.status(400).json({ success: false, message: "Nada para actualizar." });
-    }
+    const MIN_DESC_LENGTH = 40;
+
+if (!descripcion && !instagram) {
+    return res.status(400).json({
+        success: false,
+        message: "Nada para actualizar."
+    });
+}
+
+if (descripcion && descripcion.trim().length < MIN_DESC_LENGTH) {
+    return res.status(400).json({
+        success: false,
+        message: `La descripción debe tener al menos ${MIN_DESC_LENGTH} caracteres.`
+    });
+}
+
 
     const query = `
         UPDATE users
