@@ -92,3 +92,11 @@ app.get("/crear-tabla-ip", async (req, res) => {
     res.send("Error: " + e);
   }
 });
+
+
+
+
+
+// ============================
+// ⚠️ LIMPIEZA TEMPORAL DE USUARIOS (SOLO 1 DEPLOY)
+// ============================
