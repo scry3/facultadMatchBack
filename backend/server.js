@@ -85,3 +85,62 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
+
+
+
+// ============================
+// ⚠️ LIMPIEZA TEMPORAL DE USUARIOS (SOLO 1 DEPLOY)
+// ============================
+(async () => {
+  try {
+    const pool = require("./src/db/database");
+
+    // USUARIOS A BORRAR (username)
+    const usuariosABorrar = [
+      "pruebaseis",
+      "pruebacuatro",
+      "pruebacinco"
+    ];
+
+    console.log("🧨 Iniciando limpieza de usuarios...");
+
+    for (const username of usuariosABorrar) {
+      // 1️⃣ Obtener ID del usuario
+      const userRes = await pool.query(
+        "SELECT id FROM users WHERE username = $1",
+        [username]
+      );
+
+      if (userRes.rows.length === 0) {
+        console.log(`⚠️ Usuario ${username} no existe`);
+        continue;
+      }
+
+      const userId = userRes.rows[0].id;
+
+      // 2️⃣ Borrar likes donde participa
+      await pool.query(
+        "DELETE FROM likes WHERE user_id = $1 OR liked_user_id = $1",
+        [userId]
+      );
+
+      // 3️⃣ Borrar matches donde participa
+      await pool.query(
+        "DELETE FROM matches WHERE user1_id = $1 OR user2_id = $1",
+        [userId]
+      );
+
+      // 4️⃣ Borrar usuario
+      await pool.query(
+        "DELETE FROM users WHERE id = $1",
+        [userId]
+      );
+
+      console.log(`✅ Usuario ${username} eliminado completamente`);
+    }
+
+    console.log("🎉 Limpieza finalizada");
+  } catch (err) {
+    console.error("❌ Error en limpieza:", err);
+  }
+})();
