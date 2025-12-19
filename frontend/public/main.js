@@ -24,6 +24,17 @@ function getToken() {
 // ============================
 function handleRegister() {
     onDOM('#registerForm', form => {
+
+
+        const passwordInput = form.querySelector('#password');
+        const togglePassword = form.querySelector('#togglePassword');
+
+        if (togglePassword) {
+            togglePassword.addEventListener('change', () => {
+                passwordInput.type = togglePassword.checked ? 'text' : 'password';
+            });
+        }
+       
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -303,3 +314,4 @@ async function inicializarPerfil() {
         });
     });
 }
+
