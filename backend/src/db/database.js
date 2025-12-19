@@ -21,6 +21,15 @@ async function initializeDatabase() {
         `);
 
         await pool.query(`
+            CREATE TABLE IF NOT EXISTS ip_registros (
+                id SERIAL PRIMARY KEY,
+                ip TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS likes (
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
