@@ -3,11 +3,11 @@
    =========================================== */
 
 :root {
-    --color-fondo: #F9F8F6;       /* Fondo general blanco cálido */
-    --color-primario: #FF6B6B;    /* Botones y acentos principales */
-    --color-secundario: #FFA07A;  /* Hover, subtítulos y detalles */
-    --color-texto: #333333;       /* Texto principal */
-    --color-blanco: #ffffff;      /* Blanco puro para tarjetas y contenedores */
+    --color-fondo: #0F1F17;       /* Fondo general verde muy oscuro */
+    --color-primario: #22C55E;    /* Botones y acentos principales */
+    --color-secundario: #4ADE80;  /* Hover, subtítulos y detalles */
+    --color-texto: #ECFDF5;       /* Texto principal */
+    --color-blanco: #14532D;      /* Tarjetas y contenedores */
 }
 
 /* ===========================================
@@ -211,6 +211,7 @@ main {
   gap: 1rem;               /* Espacio entre botones */
   padding: 0.8rem;
 }
+
 
 
 
