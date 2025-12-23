@@ -2,12 +2,17 @@
    VARIABLES DE COLOR
    =========================================== */
 :root {
-    --color-fondo: #F9F8F6;
-    --color-primario: #FF6B6B;
-    --color-secundario: #FFA07A;
-    --color-texto: #333333;
-    --color-blanco: #ffffff;
+    --color-fondo: #0F1F17;       /* Fondo general verde muy oscuro */
+    --color-primario: #22C55E;    /* Botones y acentos principales */
+    --color-secundario: #4ADE80;  /* Hover, subtítulos y detalles */
+    --color-texto: #ECFDF5;       /* Texto principal */
+    --color-blanco: #14532D;      /* Tarjetas y contenedores */
 }
+
+
+
+
+
 
 /* ===========================================
    RESETEO BÁSICO
@@ -53,6 +58,7 @@ body.index-page {
 /* ===========================================
    CONTENEDOR PRINCIPAL DEL INDEX
    =========================================== */
+
 .container {
     background: var(--color-blanco);
     padding: 2rem;
@@ -61,7 +67,13 @@ body.index-page {
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     text-align: center;
+
+    transform-origin: top;
+    animation: expandir 0.7s cubic-bezier(.25,.9,.3,1.2) both;
+    will-change: transform;
 }
+
+
 
 /* ===========================================
    TÍTULOS
@@ -76,6 +88,15 @@ body.index-page {
     color: var(--color-secundario);
     margin-bottom: 2rem;
 }
+
+
+.nota {
+    margin-top: -1.2rem;   /* Lo acerca al subtítulo */
+    margin-bottom: 2rem;   /* Lo aleja de los botones */
+    font-size: 0.9rem;
+    opacity: 0.8;          /* Más sutil */
+}
+
 
 /* ===========================================
    BOTONES
@@ -97,4 +118,23 @@ body.index-page {
 
 .btn-secundario {
     background-color: var(--color-secundario);
+}
+
+
+
+@keyframes expandir {
+    0% {
+        transform: scaleY(0.6);
+        opacity: 0;
+    }
+    60% {
+        transform: scaleY(1.05);
+        opacity: 1;
+    }
+    80% {
+        transform: scaleY(0.97);
+    }
+    100% {
+        transform: scaleY(1);
+    }
 }
